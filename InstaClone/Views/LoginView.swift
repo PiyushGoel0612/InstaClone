@@ -8,25 +8,42 @@
 import SwiftUI
 internal import Combine
 
+// ============================================================================
+// Login View
+// ============================================================================
+
+// Entry screen for user authentication
 struct LoginView: View {
+
+    // ViewModel responsible for login logic & state
     @StateObject private var viewModel = LoginViewModel()
-    
+
     var body: some View {
-        
+
+        // Navigation container for login → feed flow
         NavigationStack {
-            
+
             ZStack {
-                Color.black.ignoresSafeArea()
+
+                // Background
+                Color.black
+                    .ignoresSafeArea()
                     .opacity(0.9)
-                
+
                 VStack(spacing: 20) {
                     Spacer()
-                    
+
+                    // ------------------------------------------------------------
+                    // App Title
+                    // ------------------------------------------------------------
                     Text("Instagram")
                         .font(.system(size: 50, weight: .bold, design: .serif))
                         .foregroundColor(.white)
                         .padding(.bottom, 20)
-                    
+
+                    // ------------------------------------------------------------
+                    // Email Input
+                    // ------------------------------------------------------------
                     TextField("Email", text: $viewModel.email)
                         .padding()
                         .background(Color(UIColor.systemGray6))
@@ -37,7 +54,10 @@ struct LoginView: View {
                         )
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
-                    
+
+                    // ------------------------------------------------------------
+                    // Password Input
+                    // ------------------------------------------------------------
                     SecureField("Password", text: $viewModel.password)
                         .padding()
                         .background(Color(UIColor.systemGray6))
@@ -46,7 +66,10 @@ struct LoginView: View {
                             RoundedRectangle(cornerRadius: 5)
                                 .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                         )
-                    
+
+                    // ------------------------------------------------------------
+                    // Error Message
+                    // ------------------------------------------------------------
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
                             .font(.caption)
@@ -54,23 +77,35 @@ struct LoginView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                     }
-                    
-                    Button(action: {viewModel.login()}) {
+
+                    // ------------------------------------------------------------
+                    // Login Button
+                    // ------------------------------------------------------------
+                    Button(action: { viewModel.login() }) {
                         Text("Login")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 50)
                             .cornerRadius(5)
-                            .background( viewModel.isValidForm ? .blue : .blue.opacity(0.5) )
+                            .background(
+                                viewModel.isValidForm
+                                ? Color.blue
+                                : Color.blue.opacity(0.5)
+                            )
                     }
+                    // Disable button if form is invalid
                     .disabled(!viewModel.isValidForm)
-                    
+
                     Spacer()
                 }
                 .padding(.horizontal, 30)
             }
+
+            // Prevent navigating back after login
             .navigationBarBackButtonHidden(true)
+
+            // Navigate to FeedView once login succeeds
             .navigationDestination(isPresented: $viewModel.isLoggedIn) {
                 FeedView(viewModel: viewModel)
             }
