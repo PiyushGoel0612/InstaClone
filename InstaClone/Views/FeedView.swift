@@ -12,19 +12,18 @@ internal import Combine
 // Feed View
 // ============================================================================
 
-// Main feed screen displaying posts and navigation to reels
 struct FeedView: View {
 
     // Used to dismiss this view on logout
     @Environment(\.dismiss) var dismiss
 
-    // Shared LoginViewModel passed from parent
+    // Shared LoginViewModel from LoginView
     @ObservedObject var viewModel: LoginViewModel
 
     // ViewModel for reels navigation
     @StateObject var reelsViewModel = ReelsViewModel()
 
-    // ViewModel responsible for feed data
+    // ViewModel for feed data
     @StateObject private var feedViewModel = FeedViewModel()
 
     // Controls navigation to Reels screen
@@ -32,8 +31,7 @@ struct FeedView: View {
 
     var body: some View {
         ZStack {
-
-            // Background
+            
             Color.black
                 .ignoresSafeArea()
                 .opacity(0.9)
@@ -64,7 +62,7 @@ struct FeedView: View {
                 // ------------------------------------------------------------
                 VStack {
 
-                    // Loading state
+                    // If still fetching data
                     if feedViewModel.isLoading {
                         Spacer()
 
@@ -97,7 +95,7 @@ struct FeedView: View {
                             Spacer()
                         }
 
-                    // Success state
+                    // After fetching is complete
                     } else {
                         VStack {
                             ScrollView {
@@ -113,11 +111,12 @@ struct FeedView: View {
                                                 }
                                             }
                                         )
+                                        // Seperate each post with a "Divider"
                                         Divider()
                                     }
                                 }
                             }
-                            // Pull-to-refresh support
+                            // Pull-to-refresh functionality
                             .refreshable {
                                 await feedViewModel.fetchFeed()
                             }
@@ -192,7 +191,6 @@ struct FeedView: View {
                 .background(Color.black)
             }
         }
-        // Disable back button (logout handled manually)
         .navigationBarBackButtonHidden(true)
 
         // Navigation to Reels screen
@@ -208,7 +206,7 @@ struct FeedView: View {
 // Post View
 // ============================================================================
 
-// View responsible for rendering a single feed post
+// View responsible for a single post
 struct PostView: View {
 
     let post: Post
@@ -221,6 +219,8 @@ struct PostView: View {
             // User Info Row
             // ------------------------------------------------------------
             HStack(spacing: 10) {
+                
+                // User profile image
                 AsyncImage(url: URL(string: post.userImage)) { image in
                     image
                         .resizable()
@@ -232,6 +232,7 @@ struct PostView: View {
                 .frame(width: 32, height: 32)
                 .clipShape(Circle())
 
+                // User name who owns the post
                 Text(post.userName)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.white)
@@ -246,17 +247,20 @@ struct PostView: View {
             // ------------------------------------------------------------
             AsyncImage(url: URL(string: post.postImage)) { phase in
                 switch phase {
+                // While the image is loading
                 case .empty:
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
                         .frame(height: 400)
                         .overlay(ProgressView())
-
+                    
+                // After the image has loaded successfully
                 case .success(let image):
                     image
                         .resizable()
                         .scaledToFit()
 
+                // On Failure display a placeholder
                 case .failure:
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
@@ -276,6 +280,7 @@ struct PostView: View {
             // ------------------------------------------------------------
             HStack(spacing: 16) {
 
+                // Like button, toggles colour based on like state
                 Button(action: onLike) {
                     Image(systemName: post.likedByUser ? "heart.fill" : "heart")
                         .font(.system(size: 24))

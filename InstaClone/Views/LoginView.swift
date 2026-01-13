@@ -12,20 +12,16 @@ internal import Combine
 // Login View
 // ============================================================================
 
-// Entry screen for user authentication
 struct LoginView: View {
 
-    // ViewModel responsible for login logic & state
+    // ViewModel for login functionality
     @StateObject private var viewModel = LoginViewModel()
 
     var body: some View {
 
-        // Navigation container for login → feed flow
         NavigationStack {
-
+            
             ZStack {
-
-                // Background
                 Color.black
                     .ignoresSafeArea()
                     .opacity(0.9)
@@ -101,11 +97,9 @@ struct LoginView: View {
                 }
                 .padding(.horizontal, 30)
             }
-
-            // Prevent navigating back after login
             .navigationBarBackButtonHidden(true)
 
-            // Navigate to FeedView once login succeeds
+            // Navigate to FeedView after login 
             .navigationDestination(isPresented: $viewModel.isLoggedIn) {
                 FeedView(viewModel: viewModel)
             }

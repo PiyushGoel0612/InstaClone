@@ -38,12 +38,11 @@ class CoreDataManager {
     // Posts Operations
     // =========================================================================
 
-    // Save posts to Core Data (clears existing cache first)
+    // Save posts to Core Data (clears cache first)
     func savePosts(_ posts: [Post]) {
         context.perform {
-
-            // Remove old cached posts
-            self.clearAllPosts()
+            // Remove old cached posts (inline to avoid nested context.perform)
+            self.clearAllPostsSync()
 
             // Insert new posts
             for post in posts {
@@ -56,7 +55,6 @@ class CoreDataManager {
                 postEntity.likedByUser = post.likedByUser
             }
 
-            // Persist changes
             self.saveContext()
         }
     }
@@ -73,7 +71,7 @@ class CoreDataManager {
         do {
             let postEntities = try context.fetch(request)
 
-            // Convert Core Data entities → domain models
+            // Convert Core Data entities to domain models
             return postEntities.map { entity in
                 Post(
                     id: entity.id ?? "",
@@ -104,21 +102,30 @@ class CoreDataManager {
                 postEntity.likeCount = Int32(post.likeCount)
                 postEntity.likedByUser = post.likedByUser
 
-                saveContext()
+                self.saveContext()
             }
         } catch {
             print("Error updating post: \(error)")
         }
     }
 
-    // Remove all cached posts using batch delete
+    // Remove all cached posts using batch delete (public version)
     func clearAllPosts() {
+        context.perform {
+            self.clearAllPostsSync()
+        }
+    }
+
+    // Remove all cached posts - synchronous version for internal use
+    private func clearAllPostsSync() {
         let request: NSFetchRequest<NSFetchRequestResult> = PostEntity.fetchRequest()
         let deleteRequest = NSBatchDeleteRequest(fetchRequest: request)
 
         do {
             try context.execute(deleteRequest)
-            saveContext()
+            // Refresh context after batch delete
+            context.refreshAllObjects()
+            self.saveContext()
         } catch {
             print("Error clearing posts: \(error)")
         }
@@ -131,9 +138,8 @@ class CoreDataManager {
     // Save reels to Core Data (clears existing cache first)
     func saveReels(_ reels: [Reel]) {
         context.perform {
-
-            // Remove old cached reels
-            self.clearAllReels()
+            // Remove old cached reels (inline to avoid nested context.perform)
+            self.clearAllReelsSync()
 
             // Insert new reels
             for reel in reels {
@@ -163,7 +169,7 @@ class CoreDataManager {
         do {
             let reelEntities = try context.fetch(request)
 
-            // Convert Core Data entities → domain models
+            // Convert Core Data entities to domain models
             return reelEntities.map { entity in
                 Reel(
                     id: entity.id ?? "",
@@ -194,21 +200,30 @@ class CoreDataManager {
                 reelEntity.likeCount = Int32(reel.likeCount)
                 reelEntity.likedByUser = reel.likedByUser
 
-                saveContext()
+                self.saveContext()
             }
         } catch {
             print("Error updating reel: \(error)")
         }
     }
 
-    // Remove all cached reels using batch delete
+    // Remove all cached reels using batch delete (public version)
     func clearAllReels() {
+        context.perform {
+            self.clearAllReelsSync()
+        }
+    }
+
+    // Remove all cached reels - synchronous version for internal use
+    private func clearAllReelsSync() {
         let request: NSFetchRequest<NSFetchRequestResult> = ReelEntity.fetchRequest()
         let deleteRequest = NSBatchDeleteRequest(fetchRequest: request)
 
         do {
             try context.execute(deleteRequest)
-            saveContext()
+            // Refresh context after batch delete
+            context.refreshAllObjects()
+            self.saveContext()
         } catch {
             print("Error clearing reels: \(error)")
         }
